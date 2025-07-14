@@ -1,35 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect } from 'react';
+import ThemeContainer from './components/layout/ThemeContainer';
+import MoodSelector from './components/controls/MoodSelector';
+import { getMoodPlaylists } from './api/spotify';
+import { useMoodStore } from './store/useMoodStore';
+import { Typography, Container, Box } from '@mui/material';
+import PlaylistCard from './components/cards/PlaylistCard';
+import { Grid } from '@mui/material';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const mood = useMoodStore((state) => state.mood);
+  const setPlaylists = useMoodStore((state) => state.setPlaylists);
+  const playlists = useMoodStore((state) => state.playlists);
+
+  useEffect(() => {
+    const fetchPlaylists = async () => {
+      const data = await getMoodPlaylists(mood);
+      console.log(data)
+      setPlaylists(data);
+    };
+    fetchPlaylists();
+  }, [mood, setPlaylists]);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <ThemeContainer>
+      <Container maxWidth="md">
+        <Typography variant="h3" align="center" gutterBottom>
+          Moodify 🎧
+        </Typography>
+        <Typography align="center" mb={4}>
+          What’s your mood today?
+        </Typography>
 
-export default App
+        <MoodSelector />
+
+        <Box mt={5}>
+        <Grid container spacing={2} justifyContent="center">
+          {playlists.map((playlist) => (
+            <Grid item key={playlist.id}>
+              <PlaylistCard playlist={playlist} />
+            </Grid>
+          ))}
+        </Grid>
+          {/* PlaylistCards will go here */}
+        </Box>
+      </Container>
+    </ThemeContainer>
+  );
+};
+
+export default App;
